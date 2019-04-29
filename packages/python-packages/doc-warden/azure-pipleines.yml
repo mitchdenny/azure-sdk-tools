@@ -5,10 +5,12 @@
 
 trigger:
   branches:
-  - master
-  - users/mitchdenny/multi-pipelines
+    include:
+    - master
+    - users/mitchdenny/multi-pipelines
   paths:
-  - /packages/python-packages/doc-warden
+    include:
+    - /packages/python-packages/doc-warden
 
 pool:
   vmImage: 'Ubuntu-16.04'

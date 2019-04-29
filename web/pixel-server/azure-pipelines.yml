@@ -5,10 +5,12 @@
 
 trigger:
   branches:
-  - master
-  - users/mitchdenny/multi-pipelines
+    include:
+    - master
+    - users/mitchdenny/multi-pipelines
   paths:
-  - /web/pixel-server
+    include:
+    - /web/pixel-server
 
 pool:
   vmImage: 'Ubuntu-16.04'
