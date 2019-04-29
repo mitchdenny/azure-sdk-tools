@@ -138,6 +138,7 @@ The presence of this file allows each repository to customize how enforcement ta
 
 **Example DocSettings File for Java Repo**
 
+
 ```
 omitted_paths:
   - archive/*

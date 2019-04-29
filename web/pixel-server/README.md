@@ -6,6 +6,7 @@ This site is intended as a backing server to serve pixels being loaded on a web 
 
 No PII data is recorded. 
 
+
 ## Prerequisites
 * This project was built, tested, and peformance checked using `.NET Core 2.1`.
 * It is intended (and has been tested) for deployment to an `Azure AppService`
