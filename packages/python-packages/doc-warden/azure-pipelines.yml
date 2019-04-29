@@ -1,0 +1,19 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+  branches:
+    include:
+    - master
+    - users/mitchdenny/multi-pipelines
+  paths:
+    include:
+    - /packages/python-packages/doc-warden
+
+pool:
+  vmImage: 'Ubuntu-16.04'
+
+steps:
+- script: echo Running pixel-server build!
