@@ -10,6 +10,7 @@ trigger:
     - users/mitchdenny/multi-pipelines
   paths:
     include:
+    - /eng
     - /packages/python-packages/doc-warden
 
 pool:
