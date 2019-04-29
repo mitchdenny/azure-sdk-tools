@@ -6,6 +6,7 @@
 trigger:
   branches:
   - master
+  - users/mitchdenny/multi-pipelines
   paths:
   - /packages/python-packages/doc-warden
 
