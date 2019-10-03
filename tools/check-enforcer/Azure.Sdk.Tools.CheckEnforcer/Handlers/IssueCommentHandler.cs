@@ -1,5 +1,6 @@
 ﻿using Azure.Sdk.Tools.CheckEnforcer.Configuration;
 using Azure.Sdk.Tools.CheckEnforcer.Integrations.GitHub;
+using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Identity.Client;
@@ -15,7 +16,18 @@ namespace Azure.Sdk.Tools.CheckEnforcer.Handlers
 {
     public class IssueCommentHandler : Handler<IssueCommentPayload>
     {
-        public IssueCommentHandler(IGlobalConfigurationProvider globalConfigurationProvider, IGitHubClientProvider gitHubClientProvider, IRepositoryConfigurationProvider repositoryConfigurationProvider, ILogger logger) : base(globalConfigurationProvider, gitHubClientProvider, repositoryConfigurationProvider, logger)
+        public IssueCommentHandler(
+            IGlobalConfigurationProvider globalConfigurationProvider,
+            IGitHubClientProvider gitHubClientProvider,
+            IRepositoryConfigurationProvider repositoryConfigurationProvider,
+            IDurableEntityClient entityClient,
+            ILogger logger
+            ) : base(
+                globalConfigurationProvider,
+                gitHubClientProvider,
+                repositoryConfigurationProvider,
+                entityClient,
+                logger)
         {
         }
 
@@ -45,11 +57,11 @@ namespace Azure.Sdk.Tools.CheckEnforcer.Handlers
                     break;
 
                 case "/check-enforcer reset":
-                    await CreateCheckAsync(context.Client, repositoryId, sha, true, cancellationToken);
+                    //await CreateCheckAsync(context.Client, repositoryId, sha, true, cancellationToken);
                     break;
 
                 case "/check-enforcer evaluate":
-                    await EvaluatePullRequestAsync(context.Client, installationId, repositoryId, sha, cancellationToken);
+                    //await EvaluatePullRequestAsync(context.Client, installationId, repositoryId, sha, cancellationToken);
                     break;
 
                 default:

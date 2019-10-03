@@ -1,5 +1,7 @@
 ﻿using Azure.Sdk.Tools.CheckEnforcer.Configuration;
+using Azure.Sdk.Tools.CheckEnforcer.Functions;
 using Azure.Sdk.Tools.CheckEnforcer.Integrations.GitHub;
+using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Octokit;
 using System;
@@ -13,7 +15,16 @@ namespace Azure.Sdk.Tools.CheckEnforcer.Handlers
 {
     public class CheckRunHandler : Handler<CheckRunEventPayload>
     {
-        public CheckRunHandler(IGlobalConfigurationProvider globalConfigurationProvider, IGitHubClientProvider gitHubCLientProvider, IRepositoryConfigurationProvider repositoryConfigurationProvider, ILogger logger) : base(globalConfigurationProvider, gitHubCLientProvider, repositoryConfigurationProvider, logger)
+        public CheckRunHandler(
+            IGlobalConfigurationProvider globalConfigurationProvider,
+            IGitHubClientProvider gitHubClientProvider,
+            IRepositoryConfigurationProvider repositoryConfigurationProvider,
+            IDurableEntityClient entityClient, ILogger logger) : base(
+                globalConfigurationProvider,
+                gitHubClientProvider,
+                repositoryConfigurationProvider,
+                entityClient,
+                logger)
         {
         }
 
@@ -29,9 +40,27 @@ namespace Azure.Sdk.Tools.CheckEnforcer.Handlers
                 var repositoryId = payload.Repository.Id;
                 var sha = payload.CheckRun.CheckSuite.HeadSha;
 
-                await EvaluatePullRequestAsync(
-                    context.Client, installationId, repositoryId, sha, cancellationToken
+                var configuration = await this.RepositoryConfigurationProvider.GetRepositoryConfigurationAsync(
+                    installationId,
+                    repositoryId,
+                    sha,
+                    cancellationToken
                     );
+
+                if (configuration.IsEnabled)
+                {
+                    var target = new GitHubCheckRunTarget()
+                    {
+                        Intent = GitHubCheckRunTargetIntent.Evaluate,
+                        InstallationId = installationId,
+                        RepositoryId = repositoryId,
+                        Sha = sha
+                    };
+
+                    var entityId = new EntityId("GHPR", target.ToString());
+
+                    await this.EntityClient.SignalEntityAsync(entityId, "Evaluate");
+                }
             }
         }
     }

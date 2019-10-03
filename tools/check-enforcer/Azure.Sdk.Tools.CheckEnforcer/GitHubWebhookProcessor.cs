@@ -8,6 +8,7 @@ using Azure.Security.KeyVault.Keys.Cryptography;
 using Azure.Security.KeyVault.Secrets;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
@@ -27,7 +28,7 @@ using System.Threading.Tasks;
 
 namespace Azure.Sdk.Tools.CheckEnforcer
 {
-    public class GitHubWebhookProcessor
+    public class GitHubWebhookProcessor : IGitHubWebhookProcessor
     {
         public GitHubWebhookProcessor(IGlobalConfigurationProvider globalConfigurationProvider, IGitHubClientProvider gitHubClientProvider, IRepositoryConfigurationProvider repositoryConfigurationProvider)
         {
@@ -43,7 +44,7 @@ namespace Azure.Sdk.Tools.CheckEnforcer
         private const string GitHubEventHeader = "X-GitHub-Event";
         private const string GitHubSignatureHeader = "X-Hub-Signature";
 
-        private DateTimeOffset gitHubAppWebhookSecretExpiry = DateTime.MinValue;
+        private DateTimeOffset gitHubAppWebhookSecretExpiry = DateTimeOffset.MinValue;
         private string gitHubAppWebhookSecret;
         private SecretClient secretClient;
 
@@ -105,7 +106,7 @@ namespace Azure.Sdk.Tools.CheckEnforcer
             }
         }
 
-        public async Task ProcessWebhookAsync(HttpRequest request, ILogger logger, CancellationToken cancellationToken)
+        public async Task ProcessWebhookAsync(HttpRequest request, IDurableEntityClient entityClient, ILogger logger, CancellationToken cancellationToken)
         {
             var json = await ReadAndVerifyBodyAsync(request, cancellationToken);
 
@@ -113,17 +114,17 @@ namespace Azure.Sdk.Tools.CheckEnforcer
             {
                 if (eventName == "check_run")
                 {
-                    var handler = new CheckRunHandler(globalConfigurationProvider, gitHubClientProvider, repositoryConfigurationProvider, logger);
+                    var handler = new CheckRunHandler(globalConfigurationProvider, gitHubClientProvider, repositoryConfigurationProvider, entityClient, logger);
                     await handler.HandleAsync(json, cancellationToken);
                 }
                 else if (eventName == "check_suite")
                 {
-                    var handler = new CheckSuiteHandler(globalConfigurationProvider, gitHubClientProvider, repositoryConfigurationProvider, logger);
+                    var handler = new CheckSuiteHandler(globalConfigurationProvider, gitHubClientProvider, repositoryConfigurationProvider, entityClient, logger);
                     await handler.HandleAsync(json, cancellationToken);
                 }
                 else if (eventName == "issue_comment")
                 {
-                    var handler = new IssueCommentHandler(globalConfigurationProvider, gitHubClientProvider, repositoryConfigurationProvider, logger);
+                    var handler = new IssueCommentHandler(globalConfigurationProvider, gitHubClientProvider, repositoryConfigurationProvider, entityClient, logger);
                     await handler.HandleAsync(json, cancellationToken);
                 }
                 else

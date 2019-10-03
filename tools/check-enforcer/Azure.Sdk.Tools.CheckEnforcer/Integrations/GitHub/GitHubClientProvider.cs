@@ -4,6 +4,7 @@ using Azure.Sdk.Tools.CheckEnforcer.Configuration;
 using Azure.Sdk.Tools.CheckEnforcer.Integrations.GitHub;
 using Azure.Security.KeyVault.Keys;
 using Azure.Security.KeyVault.Keys.Cryptography;
+using Azure.Security.KeyVault.Secrets;
 using Microsoft.IdentityModel.Tokens;
 using Octokit;
 using System;

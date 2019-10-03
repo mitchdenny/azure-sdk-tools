@@ -27,23 +27,31 @@ using System.Runtime.CompilerServices;
 using Azure.Sdk.Tools.CheckEnforcer.Configuration;
 using Azure.Sdk.Tools.CheckEnforcer.Integrations.GitHub;
 
-namespace Azure.Sdk.Tools.CheckEnforcer
+namespace Azure.Sdk.Tools.CheckEnforcer.Functions
 {
-    public static class GitHubWebhookFunction
+    public class GitHubWebhook
     {
-        private static IGlobalConfigurationProvider globalConfigurationProvider = new GlobalConfigurationProvider();
-        private static IGitHubClientProvider gitHubClientProvider = new GitHubClientProvider(globalConfigurationProvider);
-        private static IRepositoryConfigurationProvider repositoryConfigurationProvider = new RepositoryConfigurationProvider(gitHubClientProvider);
-        private static GitHubWebhookProcessor gitHubWebhookProcessor = new GitHubWebhookProcessor(globalConfigurationProvider, gitHubClientProvider, repositoryConfigurationProvider);
+        //private static IGlobalConfigurationProvider globalConfigurationProvider = new GlobalConfigurationProvider();
+        //private static IGitHubClientProvider gitHubClientProvider = new GitHubClientProvider(globalConfigurationProvider);
+        //private static IRepositoryConfigurationProvider repositoryConfigurationProvider = new RepositoryConfigurationProvider(gitHubClientProvider);
+
+        public GitHubWebhook(IGitHubWebhookProcessor gitHubWebhookProcessor)
+        {
+            this.gitHubWebhookProcessor = gitHubWebhookProcessor;
+        }
+
+        private IGitHubWebhookProcessor gitHubWebhookProcessor;
 
         [FunctionName("webhook")]
-        public static async Task<IActionResult> Run(
+        public async Task<IActionResult> Post(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req,
-            ILogger log, CancellationToken cancellationToken)
+            [DurableClient] IDurableEntityClient entityClient,
+            ILogger log,
+            CancellationToken cancellationToken)
         {
             try
             {
-                await gitHubWebhookProcessor.ProcessWebhookAsync(req, log, cancellationToken);
+                await gitHubWebhookProcessor.ProcessWebhookAsync(req, entityClient, log, cancellationToken);
                 return new OkResult();
             }
             catch (CheckEnforcerSecurityException ex)
